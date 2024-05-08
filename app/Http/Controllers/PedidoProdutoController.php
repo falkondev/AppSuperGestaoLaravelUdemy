@@ -34,18 +34,31 @@ class PedidoProdutoController extends Controller
     {
         $regras = [
             'produto_id' => 'exists:produtos,id',
+            'quantidade' => 'required',
         ];
 
         $feedback = [
             'produto_id.exists' => 'O produto informado não existe',
+            'required' => 'O campo :attribute deve possuir um valor válido',
         ];
 
         $request->validate($regras, $feedback);
 
-        $pedidoProduto = new PedidoProduto();
-        $pedidoProduto->produto_id = $request->input('produto_id');
-        $pedidoProduto->pedido_id = $pedido->id;
-        $pedidoProduto->save();
+        // $pedidoProduto = new PedidoProduto();
+        // $pedidoProduto->produto_id = $request->input('produto_id');
+        // $pedidoProduto->pedido_id = $pedido->id;
+        // $pedidoProduto->quantidade = $request->input('quantidade');
+        // $pedidoProduto->save();
+
+        // $pedido->produtos()->attach($request->input('produto_id'), [
+        //     'quantidade' => $request->input('quantidade'),
+        // ]);
+
+        $pedido->produtos()->attach([
+            $request->input('produto_id') => [
+                'quantidade' => $request->input('quantidade'),
+            ],
+        ]);
 
         return redirect()->route('pedido-produto.create', ['pedido' => $pedido->id]);
     }
@@ -77,8 +90,10 @@ class PedidoProdutoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(PedidoProduto $pedidoProduto, int $pedido_id)
     {
-        //
+        $pedidoProduto->delete();
+
+        return redirect()->route('pedido-produto.create', ['pedido' => $pedido_id]);
     }
 }
